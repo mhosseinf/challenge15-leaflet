@@ -1,4 +1,4 @@
-d3.json("static/js/PB2002_steps.JSON").then(function (seismicData) {
+d3.json("static/js/PB2002_boundaries.JSON").then(function (seismicData) {
   // Process the seismic activity data and create markers
   createSeismicMarkers(seismicData);
 });
