@@ -1,7 +1,7 @@
 // Create a Leaflet map object
 let myMap = L.map("map", {
     center: [-21.977357, 80.239575],
-    zoom: 6,
+    zoom: 4,
   });
   
   // Define base layers
@@ -33,14 +33,27 @@ function createEarthquakeMarkers(earthquakeData) {
     let depth = earthquake.geometry.coordinates[2];
 
     function markerSize(magnitude) {
-      return magnitude * 10000;
+      return magnitude * 20000;
+    }
+    // Set the marker color based on depth
+    let depths = [-10, 10, 30, 50, 70, 90];
+    let colors = ["#FFD700", "#FFB6C1", "#FF69B4", "#FF1493", "#8B008B", "#4B0082", "#2E0854"];
+
+    // Create a function to set marker color based on depth
+    function getColor(depth) {
+    for (let i = 0; i < depths.length; i++) {
+        if (depth > depths[i] && depth <= depths[i + 1]) {
+            return colors[i];
+        }
+    }
+    return colors[colors.length - 1];
     }
 
     let marker = L.circle(coordinates, {
       stroke: false,
       fillOpacity: 0.75,
-      color: "purple",
-      fillColor: "purple",
+      color: getColor(depth),
+      fillColor: getColor(depth),
       radius: markerSize(magnitude),
     });
 
