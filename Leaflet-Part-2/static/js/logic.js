@@ -9,16 +9,18 @@ function createSeismicMarkers(seismicData) {
 
   seismicData.forEach(function (sdata) {
     // Extract earthquake data and add the marker to the array.
-    let startCoordinates = [sdata.features[0].properties.STARTLONG, sdata.features[0].properties.STARTLAT];
-    let finalCoordinates = [sdata.features[0].properties.FINALLONG, sdata.features[0].properties.FINALLAT];
+    let startCoordinates = sdata.geometry.coordinates;
 
-    // Define the line style and create a polyline to connect startCoordinates and finalCoordinates.
+    // Define the line style and create a polyline to connect all the coordinates in startCoordinates.
     let lineStyle = {
       color: "yellow",
       weight: 2,
     };
 
-    let polyline = L.polyline([startCoordinates, finalCoordinates], lineStyle);
+    // Create an array to hold the polyline coordinates
+    let polylineCoordinates = startCoordinates.map(coord => [coord[1], coord[0]]);
+    
+    let polyline = L.polyline(polylineCoordinates, lineStyle);
 
     seismicMarkers.push(polyline);
   });
