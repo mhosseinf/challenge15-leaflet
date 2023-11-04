@@ -1,67 +1,70 @@
-// Store our API endpoint as queryUrl.
-let queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
-
-// Perform a GET request to the query URL/
-d3.json(queryUrl).then(function (data) {
-  // Once we get a response, send the data.features object to the createFeatures function.
-  createFeatures(data.features);
-});
-
-function createFeatures(earthquakeData) {
-
-  // Define a function that we want to run once for each feature in the features array.
-  // Give each feature a popup that describes the place and time of the earthquake.
-  function onEachFeature(feature, layer) {
-    layer.bindPopup(
-        "Magnitude: " + feature.properties.mag +
-        "<br>Depth: " + feature.geometry.coordinates[2] + " km"
-    );
-  }
-
-  // Create a GeoJSON layer that contains the features array on the earthquakeData object.
-  // Run the onEachFeature function once for each piece of data in the array.
-  let earthquakes = L.geoJSON(earthquakeData, {
-    onEachFeature: onEachFeature
-  });
-
-  // Send our earthquakes layer to the createMap function/
-  createMap(earthquakes);
-}
-
-function createMap(earthquakes) {
-
-  // Create the base layers.
-  let street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  })
-
-  let topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-    attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
-  });
-
-  // Create a baseMaps object.
-  let baseMaps = {
-    "Street Map": street,
-    "Topographic Map": topo
-  };
-
-  // Create an overlay object to hold our overlay.
-  let overlayMaps = {
-    Earthquakes: earthquakes
-  };
-
-  // Create our map, giving it the streetmap and earthquakes layers to display on load.
-  let myMap = L.map("map", {
+// Create a Leaflet map object
+let myMap = L.map("map", {
     center: [-21.977357, 80.239575],
-        zoom: 3,
-    layers: [street, earthquakes]
+    zoom: 3,
   });
-
-  // Create a layer control.
-  // Pass it our baseMaps and overlayMaps.
-  // Add the layer control to the map.
-  L.control.layers(baseMaps, overlayMaps, {
+  
+  // Define base layers
+  let street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(myMap);
+  
+  let topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+  });
+  
+  // Create an overlay object to hold earthquake data
+  let overlayMaps = {
+    Earthquakes: L.layerGroup([]),
+  };
+  
+  // Add the layer control to the map
+  L.control.layers({ "Street Map": street, "Topographic Map": topo }, overlayMaps, {
     collapsed: false
   }).addTo(myMap);
-
-}
+  
+  // Function to create earthquake markers and bind popups
+  function createEarthquakeMarkers(earthquakeData) {
+    let earthquakeMarkers = [];
+  
+    earthquakeData.forEach(function (earthquake) {
+      let coordinates = [earthquake.geometry.coordinates[1], earthquake.geometry.coordinates[0]];
+      let magnitude = earthquake.properties.mag;
+      let depth = earthquake.geometry.coordinates[2];
+  
+      function markerSize(magnitude) {
+        return magnitude * 10000;
+      }
+  
+      let marker = L.circle(coordinates, {
+        stroke: false,
+        fillOpacity: 0.75,
+        color: "purple",
+        fillColor: "purple",
+        radius: markerSize(magnitude),
+      });
+  
+      marker.bindPopup(
+        `Magnitude: ${magnitude}<br>Depth: ${depth} km`
+      );
+  
+      earthquakeMarkers.push(marker);
+    });
+  
+    return earthquakeMarkers;
+  }
+  
+  // Fetch earthquake data and create earthquake markers
+  let queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
+  
+  d3.json(queryUrl).then(function (data) {
+    let earthquakeMarkers = createEarthquakeMarkers(data.features);
+  
+    let earthquakeLayer = overlayMaps.Earthquakes;
+    earthquakeLayer.clearLayers();
+    earthquakeMarkers.forEach(function (marker) {
+      earthquakeLayer.addLayer(marker);
+    });
+    overlayMaps.Earthquakes = earthquakeLayer;
+    myMap.addLayer(earthquakeLayer);
+  });
