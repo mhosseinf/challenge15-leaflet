@@ -6,6 +6,9 @@ d3.json(queryUrl).then(function (data) {
   // Once we get a response, send the data.features object to the createFeatures function.
   createFeatures(data.features);
 });
+// Set the marker color based on depth
+let depths = [-10, 10, 30, 50, 70, 90];
+let colors = ["#FFD700", "#FFB6C1", "#FF69B4", "#FF1493", "#8B008B", "#4B0082", "#2E0854"];
 
 function createFeatures(earthquakeData) {
   // Create an array to hold the earthquake markers.
@@ -19,10 +22,7 @@ function createFeatures(earthquakeData) {
     function markerSize(magnitude) {
       return magnitude * 20000;
     }
-    // Set the marker color based on depth
-    let depths = [-10, 10, 30, 50, 70, 90];
-    let colors = ["#FFD700", "#FFB6C1", "#FF69B4", "#FF1493", "#8B008B", "#4B0082", "#2E0854"];
-
+    
     // Create a function to set marker color based on depth
     function getColor(depth) {
     for (let i = 0; i < depths.length; i++) {
@@ -89,4 +89,30 @@ function createMap(earthquakes) {
   L.control.layers(baseMaps, overlayMaps, {
     collapsed: false
   }).addTo(myMap);
+    // Create a legend for depth and associated colors
+    let legend = L.control({ position: "bottomright" });
+
+    legend.onAdd = function () {
+      let div = L.DomUtil.create("div", "info legend");
+      let labels = [];
+  
+      div.innerHTML += "<h4>Depth (km)</h4>";
+  
+      for (let i = 0; i < depths.length; i++) {
+        let from = depths[i];
+        let to = depths[i + 1];
+        labels.push(
+          `<div class="legend-item">
+             <div class="color-box" style="background-color: ${colors[i]}"></div>
+             <div class="depth-range">${from}${to ? '&ndash;' + to : '+'} km</div>
+           </div>`
+        );
+      }
+  
+      div.innerHTML += labels.join('');
+  
+      return div;
+    };
+  
+    legend.addTo(myMap);
 }
