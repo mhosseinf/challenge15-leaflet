@@ -9,6 +9,7 @@ html {
   height: 100%;
 }
 
+/* Add the CSS styles for the legend */
 .legend {
   color: #555;
   padding: 6px 8px;
@@ -25,10 +26,11 @@ html {
   margin: 0;
   clear: both;
 }
-.legend li {
+.legend-item {
   display: flex;
   align-items: center;
   margin-bottom: 5px;
+  /* Add some margin to separate color and range */
 }
 .legend .color-box {
   width: 20px;
