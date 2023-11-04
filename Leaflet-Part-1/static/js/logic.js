@@ -69,14 +69,14 @@ function createEarthquakeMarkers(earthquakeData) {
 
 // Function to create the earthquake layer and update it
 function createEarthquakeLayer(earthquakeMarkers) {
-    let earthquakeLayer = overlayMaps.Earthquakes;
-    earthquakeLayer.clearLayers();
-    earthquakeMarkers.forEach(function (marker) {
-      earthquakeLayer.addLayer(marker);
-    });
-    overlayMaps.Earthquakes = earthquakeLayer;
+    let earthquakeLayer = L.layerGroup(); // Create a new layer group
+  
+    for (let i = 0; i < earthquakeMarkers.length; i++) {
+      earthquakeLayer.addLayer(earthquakeMarkers[i]);
+    }
+  
     myMap.addLayer(earthquakeLayer);
-}
+  }
 
 // Fetch earthquake data and create earthquake markers
 let queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
