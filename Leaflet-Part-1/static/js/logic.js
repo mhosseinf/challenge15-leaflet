@@ -1,7 +1,7 @@
 // Create a Leaflet map object
 let myMap = L.map("map", {
     center: [-21.977357, 80.239575],
-    zoom: 3,
+    zoom: 6,
   });
   
   // Define base layers
@@ -23,43 +23,39 @@ let myMap = L.map("map", {
     collapsed: false
   }).addTo(myMap);
   
-  // Function to create earthquake markers and bind popups
-  function createEarthquakeMarkers(earthquakeData) {
-    let earthquakeMarkers = [];
-  
-    earthquakeData.forEach(function (earthquake) {
-      let coordinates = [earthquake.geometry.coordinates[1], earthquake.geometry.coordinates[0]];
-      let magnitude = earthquake.properties.mag;
-      let depth = earthquake.geometry.coordinates[2];
-  
-      function markerSize(magnitude) {
-        return magnitude * 10000;
-      }
-  
-      let marker = L.circle(coordinates, {
-        stroke: false,
-        fillOpacity: 0.75,
-        color: "purple",
-        fillColor: "purple",
-        radius: markerSize(magnitude),
-      });
-  
-      marker.bindPopup(
-        `Magnitude: ${magnitude}<br>Depth: ${depth} km`
-      );
-  
-      earthquakeMarkers.push(marker);
+// Function to create earthquake markers and bind popups
+function createEarthquakeMarkers(earthquakeData) {
+  let earthquakeMarkers = [];
+
+  earthquakeData.forEach(function (earthquake) {
+    let coordinates = [earthquake.geometry.coordinates[1], earthquake.geometry.coordinates[0]];
+    let magnitude = earthquake.properties.mag;
+    let depth = earthquake.geometry.coordinates[2];
+
+    function markerSize(magnitude) {
+      return magnitude * 10000;
+    }
+
+    let marker = L.circle(coordinates, {
+      stroke: false,
+      fillOpacity: 0.75,
+      color: "purple",
+      fillColor: "purple",
+      radius: markerSize(magnitude),
     });
-  
-    return earthquakeMarkers;
-  }
-  
-  // Fetch earthquake data and create earthquake markers
-  let queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
-  
-  d3.json(queryUrl).then(function (data) {
-    let earthquakeMarkers = createEarthquakeMarkers(data.features);
-  
+
+    marker.bindPopup(
+      `Magnitude: ${magnitude}<br>Depth: ${depth} km`
+    );
+
+    earthquakeMarkers.push(marker);
+  });
+
+  return earthquakeMarkers;
+}
+
+// Function to create the earthquake layer and update it
+function createEarthquakeLayer(earthquakeMarkers) {
     let earthquakeLayer = overlayMaps.Earthquakes;
     earthquakeLayer.clearLayers();
     earthquakeMarkers.forEach(function (marker) {
@@ -67,4 +63,12 @@ let myMap = L.map("map", {
     });
     overlayMaps.Earthquakes = earthquakeLayer;
     myMap.addLayer(earthquakeLayer);
+}
+
+// Fetch earthquake data and create earthquake markers
+let queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
+  
+d3.json(queryUrl).then(function (data) {
+    let earthquakeMarkers = createEarthquakeMarkers(data.features);
+    createEarthquakeLayer(earthquakeMarkers);
   });
